@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ghost Screen AI - App Premium</title>
+    <title>Ghost Screen V2</title>
+    <link rel="icon" href="icon.ico" type="image/x-icon">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
@@ -29,7 +30,7 @@
             padding: 14px;
         }
 
-        /* CELULAR MOCKUP */
+        /* Estrutura do celular fake. Não é um iPhone, mas jurou que era. */
         .phone {
             width: 350px; height: 740px; background-color: var(--bg-color);
             border-radius: 45px; border: 8px solid #222;
@@ -58,7 +59,7 @@
         .page-title { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 5px; }
         .page-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 25px; }
 
-        /* CARDS */
+        /* Cards base do app: reaproveitados em quase tudo pra não virar carnaval de CSS. */
         .card { background: var(--surface); border: 1px solid #222; border-radius: 20px; padding: 18px; margin-bottom: 15px; }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .card-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
@@ -87,7 +88,7 @@
         .stat-box h3 { font-size: 20px; margin-bottom: 2px; }
         .stat-box p { font-size: 11px; color: var(--text-muted); }
 
-        /* BOTOES */
+        /* Botões principais e menores. Simples, clicáveis e sem drama. */
         .btn-demo-main {
             width: 100%; padding: 16px; background: #fff; color: #000; border: none; border-radius: 15px;
             font-size: 14px; font-weight: 700; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;
@@ -103,7 +104,7 @@
         .btn-mini:hover { background: #333; }
         .btn-mini:active { transform: scale(0.95); }
 
-        /* LISTA CONFIGS */
+        /* Linhas de configuração: texto de um lado, ação do outro, paz no layout. */
         .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #222; }
         .setting-item:last-child { border-bottom: none; }
         .setting-text { flex: 1; }
@@ -111,7 +112,7 @@
         .setting-text p { font-size: 11px; color: var(--text-muted); }
         .setting-actions { display: flex; align-items: center; gap: 10px; }
 
-        /* TOGGLE */
+        /* Switch customizado. Pequeno, mas manda em bastante coisa aqui. */
         .switch { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; border-radius: 24px; transition: .3s; }
@@ -119,7 +120,7 @@
         input:checked + .slider { background-color: var(--accent); }
         input:checked + .slider:before { transform: translateX(18px); background-color: #000; }
 
-        /* MENU INFERIOR */
+        /* Navegação inferior fixa, porque usuário perdido clica em tudo. */
         .bottom-nav {
             position: absolute; bottom: 0; width: 100%; background: rgba(10, 10, 10, 0.9); backdrop-filter: blur(10px);
             border-top: 1px solid #222; display: flex; justify-content: space-around; padding: 15px 10px 25px; z-index: 60;
@@ -130,9 +131,7 @@
         .nav-item.active { color: var(--accent); }
         .nav-item.active .nav-icon { filter: grayscale(0%); opacity: 1; text-shadow: 0 0 8px var(--accent-glow); }
 
-        /* =========================================
-           AMBIENTE DE DEMONSTRAÇÃO (TELAS FAKES)
-           ========================================= */
+        /* Área das simulações. Tudo fake, mas com cara de produto pronto. */
         .demo-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #111; z-index: 200; display: none; flex-direction: column;
@@ -150,7 +149,7 @@
         }
         .demo-alert.show { transform: translateY(0); }
 
-        /* Efeitos Visuais Ghost Screen */
+        /* Camadas visuais da Ghost Screen: blur, blackout lateral e outros truques de palco. */
         .effect-blur { position: absolute; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(0px); pointer-events: none; transition: 0.5s; z-index: 205; }
         .effect-blur.active { backdrop-filter: blur(15px); background: rgba(0,0,0,0.5); }
         
@@ -163,12 +162,12 @@
         .effect-dim { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); opacity:0; transition: 1s; pointer-events:none; z-index:204; }
         .effect-dim.active { opacity: 1; }
 
-        /* App 1: Bancário */
+        /* Mock bancário usado nos testes de privacidade pesada. */
         .app-mock { display: none; padding: 60px 20px; flex-direction: column; gap: 20px; height: 100%; }
         .bank-card { background: linear-gradient(135deg, #222, #000); border: 1px solid #333; padding: 25px; border-radius: 20px; }
         .bank-val { font-size: 32px; font-weight: bold; margin: 10px 0; }
 
-        /* App 2: Calculadora (Cofre) */
+        /* Modo cofre: parece calculadora, mas está só desviando curioso. */
         .calc-display { font-size: 50px; text-align: right; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 20px;}
         .calc-shell {
             background: linear-gradient(180deg, #0d0d0d 0%, #050505 100%);
@@ -201,14 +200,14 @@
             grid-column: span 2; justify-content: flex-start; padding-left: 24px;
         }
         
-        /* App 3: Rede Social */
+        /* Mock de rede social para testar exposição lateral sem envolver app real. */
         .social-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; }
         .social-post { background: #1a1a1a; border-radius: 15px; padding: 15px; margin-bottom: 15px;}
         .social-user { display: flex; align-items: center; gap: 10px; margin-bottom: 10px;}
         .avatar { width: 30px; height: 30px; background: #333; border-radius: 50%; }
         .post-img { width: 100%; height: 150px; background: #222; border-radius: 10px; margin-top: 10px;}
 
-        /* App 4: Streaming */
+        /* Mock de streaming para validar conforto visual em dia/noite. */
         .stream-player { width: 100%; height: 200px; background: #000; border: 1px solid #222; border-radius: 15px; display: flex; justify-content: center; align-items: center; position: relative;}
         .play-btn { width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px;}
         .stream-title { margin-top: 15px; font-size: 16px; font-weight: bold;}
@@ -295,7 +294,7 @@
             text-transform: uppercase; letter-spacing: 0.08em;
         }
 
-        /* REMOTO / AJUSTES */
+        /* Telas de remoto e ajustes. Parte burocrática, mas necessária. */
         .status-chip {
             display: inline-flex; align-items: center; justify-content: center;
             min-width: 72px; padding: 6px 10px; border-radius: 999px;
@@ -443,7 +442,7 @@
         </div>
 
         <div class="app-content">
-            <!-- ABA 1: INÍCIO (DASHBOARD) -->
+            <!-- Dashboard inicial: o painel que tenta parecer calmo mesmo quando tem alerta. -->
             <div id="tab-home" class="tab-pane active">
                 <h1 class="page-title">Dashboard</h1>
                 <p class="page-subtitle">Visão geral do sistema</p>
@@ -506,7 +505,7 @@
                 </p>
             </div>
 
-            <!-- ABA 2: PROTEÇÃO -->
+            <!-- Regras de proteção: é aqui que a blindagem ganha botão de liga/desliga. -->
             <div id="tab-protection" class="tab-pane">
                 <h1 class="page-title">Proteção AI</h1>
                 <p class="page-subtitle">Configure as regras de privacidade</p>
@@ -563,7 +562,7 @@
                 </div>
             </div>
 
-            <!-- ABA 3: RELATÓRIOS (Simplificada com nomes genéricos) -->
+            <!-- Relatórios do dia: números bonitos para explicar o que aconteceu sem assustar ninguém. -->
             <div id="tab-reports" class="tab-pane">
                 <h1 class="page-title">Relatórios</h1>
                 <p class="page-subtitle">Categorias mais protegidas hoje</p>
@@ -781,7 +780,7 @@
             </div>
         </div>
 
-        <!-- MENU INFERIOR -->
+        <!-- Menu inferior: cinco abas, zero desculpas para se perder. -->
         <div class="bottom-nav">
             <div class="nav-item active" data-tab="home" role="button" tabindex="0" onclick="switchTab('home', this)"><div class="nav-icon">🏠</div><span class="nav-label">Início</span></div>
             <div class="nav-item" data-tab="protection" role="button" tabindex="0" onclick="switchTab('protection', this)"><div class="nav-icon">🛡️</div><span class="nav-label">Proteção</span></div>
@@ -790,20 +789,18 @@
             <div class="nav-item" data-tab="settings" role="button" tabindex="0" onclick="switchTab('settings', this)"><div class="nav-icon">⚙️</div><span class="nav-label">Ajustes</span></div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- OVERLAY DE DEMONSTRAÇÃO (FICA INVISÍVEL) -->
-        <!-- ========================================== -->
+        <!-- Overlay das demos: fica escondido até alguém apertar o botão vermelho da curiosidade. -->
         <div class="demo-overlay" id="demo-overlay">
             <div class="demo-status" id="demo-status">Testando...</div>
             <div class="demo-alert" id="demo-alert">Alerta</div>
             
-            <!-- Camadas de Efeito -->
+            <!-- Camadas de efeito visual. A mágica acontece por cima, sem bagunçar o mock por baixo. -->
             <div class="effect-blur" id="eff-blur"></div>
             <div class="effect-lateral" id="eff-lateral"></div>
             <div class="effect-dim" id="eff-dim"></div>
             <div class="effect-bright" id="eff-bright"></div>
 
-            <!-- UI 1: App Bancário -->
+            <!-- Tela bancária fake para testar bloqueio lateral e proteção de dados sensíveis. -->
             <div class="app-mock" id="mock-banco">
                 <h2 style="font-size: 20px;">App Bancário</h2>
                 <div class="bank-card">
@@ -813,7 +810,7 @@
                 </div>
             </div>
 
-            <!-- UI 2: Calculadora (Cofre) -->
+            <!-- Tela calculadora do Modo Cofre. O famoso “não era isso que eu estava vendo”. -->
             <div class="app-mock" id="mock-calc" style="padding-top: 80px;">
                 <div class="calc-shell">
                     <div class="calc-topline">
@@ -846,7 +843,7 @@
                 </div>
             </div>
 
-            <!-- UI 3: Rede Social -->
+            <!-- Rede social fake para simular feed, chat e aquele olhar de canto de olho. -->
             <div class="app-mock" id="mock-social">
                 <div class="social-header">Feed (Rede Social)</div>
                 <div class="social-post">
@@ -856,7 +853,7 @@
                 </div>
             </div>
 
-            <!-- UI 4: Streaming -->
+            <!-- Streaming fake para testar adaptação de brilho sem fritar a retina. -->
             <div class="app-mock" id="mock-stream">
                 <div class="social-header">App de Streaming</div>
                 <div class="stream-player night" id="stream-player"><div class="play-btn">▶</div></div>
@@ -897,6 +894,7 @@
 
     <script>
         (() => {
+            // Estado local versionado. Mudou estrutura? Sobe o sufixo e evita bug fantasma.
             const STORAGE_KEY = 'ghost-screen-ai-state-v4';
             const VALID_TABS = new Set(['home', 'protection', 'reports', 'remote', 'settings']);
             const PROFILE_LABELS = {
@@ -937,6 +935,7 @@
                 }
             };
 
+            // Estado inicial do app. Mantém tudo previsível quando o navegador resolve esquecer a vida.
             function createDefaultState() {
                 return {
                     activeTab: 'home',
@@ -1032,6 +1031,7 @@
                 };
             }
 
+            // Carrega o estado salvo com validação defensiva, porque localStorage aceita qualquer barbaridade.
             function loadState() {
                 const next = createDefaultState();
 
@@ -1101,6 +1101,7 @@
                 return document.getElementById(id);
             }
 
+            // Cache dos elementos da tela. Melhor buscar uma vez do que ficar caçando ID toda hora.
             function cacheRefs() {
                 refs.clock = byId('clock');
                 refs.appContent = document.querySelector('.app-content');
@@ -1373,6 +1374,7 @@
                 setText(refs.clock, formatClock());
             }
 
+            // Salva só o que importa. Estado de demo fica de fora para não acordar o app em modo novela.
             function persistState() {
                 try {
                     if (!window.localStorage) {
@@ -1400,6 +1402,7 @@
                 }
             }
 
+            // Toast rápido para feedback. Some sozinho, como todo aviso educado deveria fazer.
             function showToast(message, type = 'accent') {
                 if (!refs.toast) {
                     return;
@@ -1413,6 +1416,7 @@
                 }, 2200);
             }
 
+            // Histórico curtinho: guarda o suficiente para parecer útil, sem virar prontuário.
             function recordActivity(section, title, detail) {
                 state.activity.unshift({
                     section: getString(section, 'system'),
