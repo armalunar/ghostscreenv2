@@ -249,6 +249,52 @@
         }
         .effect-bright.active { opacity: 1; }
 
+        .summary-shell {
+            background: linear-gradient(180deg, #0d0f11 0%, #060708 100%);
+            border: 1px solid #232629; border-radius: 24px; padding: 20px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+        }
+        .summary-head {
+            display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px;
+        }
+        .summary-title {
+            font-size: 22px; font-weight: 800; letter-spacing: -0.03em;
+        }
+        .summary-subtitle {
+            font-size: 12px; color: #b9b9b9; line-height: 1.55; margin-bottom: 18px;
+        }
+        .summary-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px;
+        }
+        .summary-box {
+            background: rgba(255,255,255,0.03); border: 1px solid #222;
+            border-radius: 16px; padding: 14px;
+        }
+        .summary-box strong {
+            display: block; font-size: 22px; margin-bottom: 4px;
+        }
+        .summary-box span {
+            font-size: 11px; color: var(--text-muted);
+        }
+        .summary-list {
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .summary-item {
+            display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+            padding: 12px 0; border-bottom: 1px solid #222;
+        }
+        .summary-item:last-child { border-bottom: none; }
+        .summary-copy strong {
+            display: block; font-size: 13px; margin-bottom: 4px;
+        }
+        .summary-copy p {
+            font-size: 11px; color: #b7b7b7; line-height: 1.45;
+        }
+        .summary-state {
+            flex-shrink: 0; color: var(--success); font-size: 10px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.08em;
+        }
+
         /* REMOTO / AJUSTES */
         .status-chip {
             display: inline-flex; align-items: center; justify-content: center;
@@ -822,6 +868,27 @@
                 <div class="stream-desc" id="stream-desc">Assistindo no escuro...</div>
                 <div class="stream-ambient-note" id="stream-ambient-copy">A IA ajusta brilho, contraste e filtro de luz para sessões noturnas prolongadas.</div>
             </div>
+
+            <div class="app-mock" id="mock-summary" style="padding-top: 72px;">
+                <div class="summary-shell">
+                    <div class="summary-head">
+                        <h2 class="summary-title">Resumo Final</h2>
+                        <span class="status-chip online" id="summary-badge">Completo</span>
+                    </div>
+                    <p class="summary-subtitle" id="summary-copy">A simulação passou por todas as camadas ativas e validou a adaptação automática do app.</p>
+                    <div class="summary-grid">
+                        <div class="summary-box">
+                            <strong id="summary-modules">5</strong>
+                            <span>Módulos testados</span>
+                        </div>
+                        <div class="summary-box">
+                            <strong id="summary-response">0,48s</strong>
+                            <span>Resposta média</span>
+                        </div>
+                    </div>
+                    <div class="summary-list" id="simulation-summary-list"></div>
+                </div>
+            </div>
         </div>
 
         <div class="toast" id="app-toast" role="status" aria-live="polite"></div>
@@ -857,9 +924,9 @@
                     metric: 'social'
                 },
                 stream: {
-                    title: 'Conforto visual aplicado',
-                    detail: 'A luminosidade ambiente foi adaptada para uso seguro em local escuro.',
-                    lastEvent: 'Conforto visual ajustado',
+                    title: 'Adaptação visual completa',
+                    detail: 'A reprodução foi ajustada automaticamente para cenários de dia e de noite.',
+                    lastEvent: 'Adaptação dia/noite validada',
                     metric: 'stream'
                 },
                 cofre: {
@@ -929,7 +996,8 @@
                     demo: {
                         running: false,
                         token: 0,
-                        alertTimer: 0
+                        alertTimer: 0,
+                        streamModeOverride: ''
                     }
                 };
             }
@@ -1106,6 +1174,11 @@
                 refs.streamModeDetail = byId('stream-mode-detail');
                 refs.streamDesc = byId('stream-desc');
                 refs.streamAmbientCopy = byId('stream-ambient-copy');
+                refs.summaryBadge = byId('summary-badge');
+                refs.summaryCopy = byId('summary-copy');
+                refs.summaryModules = byId('summary-modules');
+                refs.summaryResponse = byId('summary-response');
+                refs.summaryList = byId('simulation-summary-list');
                 refs.toast = byId('app-toast');
             }
 
@@ -1198,8 +1271,8 @@
                 return hour >= 6 && hour < 18 ? 'day' : 'night';
             }
 
-            function updateStreamPreview() {
-                const mode = getVisualEnvironment();
+            function updateStreamPreview(modeOverride) {
+                const mode = modeOverride || state.demo.streamModeOverride || getVisualEnvironment();
 
                 if (refs.streamPlayer) {
                     refs.streamPlayer.className = 'stream-player ' + (mode === 'day' ? 'daylight' : 'night');
@@ -1614,6 +1687,7 @@
             }
 
             function resetDemoUI() {
+                state.demo.streamModeOverride = '';
                 refs.appMocks.forEach(el => {
                     el.style.display = 'none';
                 });
@@ -1637,12 +1711,94 @@
 
                 clearDemoAlertTimer();
                 setText(refs.statusBox, '');
+                updateStreamPreview();
             }
 
             function updateSimulationControls() {
                 refs.simTriggers.forEach(button => {
                     button.disabled = state.demo.running;
                 });
+            }
+
+            function renderSimulationSummary(sceneKeys) {
+                if (!refs.summaryList) {
+                    return;
+                }
+
+                const executed = Array.isArray(sceneKeys) ? sceneKeys.slice() : [];
+                const items = [];
+
+                executed.forEach(type => {
+                    if (type === 'rostos') {
+                        items.push({
+                            title: 'Anti-Espião',
+                            detail: 'Detecção de múltiplos rostos validada com borramento automático.',
+                            status: 'OK'
+                        });
+                    } else if (type === 'social') {
+                        items.push({
+                            title: 'Privacidade Social',
+                            detail: 'Filtro lateral moderado aplicado em feed e mensagens.',
+                            status: 'OK'
+                        });
+                    } else if (type === 'stream') {
+                        items.push({
+                            title: 'Streaming Adaptativo',
+                            detail: 'Ajuste completo demonstrado em ambiente claro e em ambiente escuro.',
+                            status: 'Dia/Noite'
+                        });
+                    } else if (type === 'banco') {
+                        items.push({
+                            title: 'Blindagem Bancária',
+                            detail: 'Escurecimento lateral máximo ativado para ocultar dados sensíveis.',
+                            status: 'OK'
+                        });
+                    } else if (type === 'cofre') {
+                        items.push({
+                            title: 'Modo Cofre',
+                            detail: 'Troca instantânea para calculadora completa em cenário de risco extremo.',
+                            status: 'OK'
+                        });
+                    }
+                });
+
+                refs.summaryList.innerHTML = '';
+
+                items.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'summary-item';
+
+                    const copy = document.createElement('div');
+                    copy.className = 'summary-copy';
+
+                    const title = document.createElement('strong');
+                    title.textContent = item.title;
+
+                    const detail = document.createElement('p');
+                    detail.textContent = item.detail;
+
+                    copy.appendChild(title);
+                    copy.appendChild(detail);
+
+                    const badge = document.createElement('div');
+                    badge.className = 'summary-state';
+                    badge.textContent = item.status;
+
+                    row.appendChild(copy);
+                    row.appendChild(badge);
+                    refs.summaryList.appendChild(row);
+                });
+
+                setText(refs.summaryModules, String(items.length));
+                setText(refs.summaryResponse, formatSeconds(getResponseTimeSeconds()));
+                setText(refs.summaryBadge, items.length ? 'Completo' : 'Parcial');
+                setClassName(refs.summaryBadge, 'status-chip ' + (items.length ? 'online' : 'warning'));
+                setText(
+                    refs.summaryCopy,
+                    items.length
+                        ? 'A simulação executou todas as camadas ativas e validou o comportamento do app de ponta a ponta.'
+                        : 'Nenhuma camada ativa foi encontrada para compor o resumo.'
+                );
             }
 
             function openDemoSession() {
@@ -1652,6 +1808,7 @@
 
                 state.demo.token += 1;
                 state.demo.running = true;
+                state.demo.streamModeOverride = '';
                 updateSimulationControls();
                 updateDashboard();
                 setDisplay(refs.overlay, 'flex');
@@ -1665,6 +1822,7 @@
                 }
 
                 state.demo.running = false;
+                state.demo.streamModeOverride = '';
                 updateSimulationControls();
                 resetDemoUI();
                 setDisplay(refs.overlay, 'none');
@@ -1673,6 +1831,7 @@
 
             function abortDemoSession() {
                 state.demo.token += 1;
+                state.demo.streamModeOverride = '';
                 closeDemoSession(state.demo.token);
             }
 
@@ -1740,7 +1899,7 @@
                 } else if (meta.metric === 'social') {
                     state.metrics.social += 1;
                 } else if (meta.metric === 'stream') {
-                    state.metrics.stream += 1;
+                    state.metrics.stream += 2;
                 } else if (meta.metric === 'faces') {
                     state.metrics.faces += 1;
                 } else if (meta.metric === 'vault') {
@@ -1798,28 +1957,32 @@
             }
 
             async function cenaStream(token) {
-                const mode = getVisualEnvironment();
-                setText(refs.statusBox, mode === 'day' ? 'Cena: Streaming (Modo Dia / IA)' : 'Cena: Streaming (Conforto Visual / IA)');
-                updateStreamPreview();
+                setText(refs.statusBox, 'Cena: Streaming (Adaptação Dia -> Noite)');
                 showApp('stream');
-                await wait(Math.round(getResponseTimeSeconds() * 900) + 160, token);
-                if (mode === 'day') {
-                    triggerAlert('☀️ Ambiente Claro: Contraste Inteligente Ativado', 'accent');
-                    if (refs.effectBright) {
-                        refs.effectBright.classList.add('active');
-                    }
-                } else {
-                    triggerAlert('🌙 Ambiente Escuro: Conforto Visual Ativado', 'accent');
-                    if (refs.effectDim) {
-                        refs.effectDim.classList.add('active');
-                    }
+                
+                state.demo.streamModeOverride = 'day';
+                updateStreamPreview('day');
+                await wait(Math.round(getResponseTimeSeconds() * 700) + 140, token);
+                triggerAlert('☀️ Ambiente Claro: Contraste Inteligente Ativado', 'accent');
+                if (refs.effectBright) {
+                    refs.effectBright.classList.add('active');
                 }
-                await wait(2200, token);
-                if (refs.effectDim) {
-                    refs.effectDim.classList.remove('active');
-                }
+                await wait(1700, token);
                 if (refs.effectBright) {
                     refs.effectBright.classList.remove('active');
+                }
+
+                setText(refs.statusBox, 'Cena: Streaming (Transição para Modo Noite)');
+                state.demo.streamModeOverride = 'night';
+                updateStreamPreview('night');
+                await wait(500, token);
+                triggerAlert('🌙 Ambiente Escuro: Conforto Visual Ativado', 'accent');
+                if (refs.effectDim) {
+                    refs.effectDim.classList.add('active');
+                }
+                await wait(1900, token);
+                if (refs.effectDim) {
+                    refs.effectDim.classList.remove('active');
                 }
             }
 
@@ -1892,6 +2055,17 @@
                 return queue;
             }
 
+            async function showSimulationSummary(token, executedScenes) {
+                ensureDemoActive(token);
+                resetDemoUI();
+                renderSimulationSummary(executedScenes);
+                setText(refs.statusBox, 'Resumo: cobertura validada');
+                showApp('summary');
+                await wait(260, token);
+                triggerAlert('✅ Simulação completa validada', 'success');
+                await wait(1800, token);
+            }
+
             async function runGeneralSimulation() {
                 const queue = getGeneralSimulationQueue();
                 if (!queue.length) {
@@ -1912,12 +2086,11 @@
                         await wait(450, token);
                     }
 
-                    setText(refs.statusBox, '✅ Simulação concluída');
+                    await showSimulationSummary(token, queue);
                     recordActivity('report', 'Simulação geral concluída', formatCount(queue.length, 'camada executada', 'camadas executadas') + ' com sucesso.');
                     state.metrics.lastEvent = 'Simulação geral concluída';
                     state.metrics.lastScanAt = Date.now();
                     persistState();
-                    await wait(900, token);
                 } finally {
                     closeDemoSession(token);
                     refreshAllUI();
