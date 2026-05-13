@@ -23,6 +23,7 @@
     --blur-level: 7px;
     --dim-level: 0.62;
     --brightness-level: 1;
+    --screen-dim-opacity: 0.083;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
     color-scheme: dark;
 }
@@ -397,6 +398,10 @@ h1, h2, h3, p { margin: 0; }
     filter: drop-shadow(0 32px 48px rgba(0,0,0,0.7)) drop-shadow(0 8px 16px rgba(0,0,0,0.5));
 }
 
+.phone-shell:not([src]) {
+    visibility: hidden;
+}
+
 /* ============================================================
    PHONE SCREEN
    ============================================================ */
@@ -410,7 +415,17 @@ h1, h2, h3, p { margin: 0; }
     overflow: hidden;
     border-radius: clamp(24px, 5.7vw, 44px);
     background: #000;
-    filter: brightness(var(--brightness-level));
+    isolation: isolate;
+}
+
+.phone-screen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 120;
+    pointer-events: none;
+    background: rgba(0,0,0,var(--screen-dim-opacity));
+    transition: background 180ms ease;
 }
 
 .app-shell {
@@ -561,7 +576,7 @@ h1, h2, h3, p { margin: 0; }
     align-items: center;
     padding: 12px 12px;
     color: var(--text);
-    background: rgba(30, 30, 32, 0.82);
+    background: rgba(30, 30, 32, 0.88);
     border: 1px solid rgba(255,255,255,0.14);
     border-radius: 22px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.48), 0 2px 8px rgba(0,0,0,0.28);
@@ -1722,8 +1737,14 @@ h1, h2, h3, p { margin: 0; }
 .simulation-overlay.state-vault .mock-app { z-index: 14; }
 
 .simulation-overlay.state-video .effect-layer.lateral {
-    opacity: 0.45;
-    animation: lateral-breathe 6s ease-in-out infinite;
+    opacity: 1;
+    background:
+        radial-gradient(ellipse at 0% 0%, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.22) 24%, transparent 48%),
+        radial-gradient(ellipse at 100% 0%, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.22) 24%, transparent 48%),
+        radial-gradient(ellipse at 0% 100%, rgba(0,0,0,0.48) 0%, rgba(0,0,0,0.2) 24%, transparent 48%),
+        radial-gradient(ellipse at 100% 100%, rgba(0,0,0,0.48) 0%, rgba(0,0,0,0.2) 24%, transparent 48%),
+        linear-gradient(90deg, rgba(0,0,0,0.18), transparent 30%, transparent 70%, rgba(0,0,0,0.18));
+    animation: none;
 }
 
 .simulation-overlay.state-calibration .effect-layer.glow,
@@ -2399,6 +2420,70 @@ h1, h2, h3, p { margin: 0; }
     .phone-device { width: min(112vw, calc(100svh * 0.64)); }
 }
 
+.is-phone-runtime,
+.is-phone-runtime body {
+    width: 100%;
+    min-height: 100svh;
+    min-height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+.is-phone-runtime .experience-shell {
+    width: 100vw;
+    height: 100svh;
+    height: 100dvh;
+    min-height: 100svh;
+    min-height: 100dvh;
+    padding: 0;
+    overflow: hidden;
+}
+
+.is-phone-runtime .phone-stage {
+    width: 100vw;
+    height: 100svh;
+    height: 100dvh;
+    min-height: 100svh;
+    min-height: 100dvh;
+    overflow: hidden;
+    display: block;
+}
+
+.is-phone-runtime .phone-device {
+    width: 100vw;
+    height: 100svh;
+    height: 100dvh;
+    aspect-ratio: auto;
+}
+
+.is-phone-runtime .phone-shell,
+.is-phone-runtime .power-btn {
+    display: none;
+}
+
+.is-phone-runtime .phone-screen {
+    inset: 0;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+}
+
+.is-phone-runtime .status-bar,
+.is-phone-runtime .lock-status-bar {
+    padding-top: calc(14px + env(safe-area-inset-top));
+    height: calc(50px + env(safe-area-inset-top));
+}
+
+.is-phone-runtime .lock-swipe-area {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+}
+
+.is-phone-runtime .bottom-nav {
+    padding-bottom: calc(6px + env(safe-area-inset-bottom));
+}
+
 /* ============================================================
    PHONE STATE MANAGEMENT (off / locked / unlocked)
    ============================================================ */
@@ -2522,15 +2607,14 @@ h1, h2, h3, p { margin: 0; }
         radial-gradient(ellipse at 70% 30%, rgba(160, 120, 255, 0.12) 0%, transparent 50%);
 }
 
-.lock-wallpaper[data-has-wallpaper="true"] {
-    background: none !important;
-}
-
 .lock-wallpaper[data-has-wallpaper="true"]::after {
-    display: none;
+    display: block;
+    background:
+        linear-gradient(180deg, rgba(0,0,0,0.26) 0%, rgba(0,0,0,0.08) 46%, rgba(0,0,0,0.18) 100%),
+        rgba(5, 8, 14, 0.1);
 }
 
-.lock-screen > * { position: relative; z-index: 1; }
+.lock-screen > *:not(.lock-wallpaper) { position: relative; z-index: 1; }
 
 /* Lock status bar */
 .lock-status-bar {
@@ -2592,12 +2676,13 @@ h1, h2, h3, p { margin: 0; }
     display: flex;
     gap: 10px;
     align-items: flex-start;
-    background: rgba(255,255,255,0.14);
-    backdrop-filter: blur(18px) saturate(1.5);
-    -webkit-backdrop-filter: blur(18px) saturate(1.5);
+    background: rgba(31,33,37,0.84);
+    backdrop-filter: blur(18px) saturate(1.05);
+    -webkit-backdrop-filter: blur(18px) saturate(1.05);
     border-radius: 16px;
     padding: 10px 12px;
-    border: 1px solid rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.14);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.18);
     animation: lock-notif-in 0.5s cubic-bezier(0.16,1,0.3,1) both;
 }
 
@@ -2692,14 +2777,16 @@ h1, h2, h3, p { margin: 0; }
 }
 
 .lock-swipe-track {
+    --swipe-knob-size: 44px;
+    --swipe-track-pad: 4px;
     position: relative;
     width: 100%;
     height: 52px;
-    background: rgba(255,255,255,0.14);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(31,33,37,0.78);
+    backdrop-filter: blur(14px) saturate(1.05);
+    -webkit-backdrop-filter: blur(14px) saturate(1.05);
     border-radius: 999px;
-    border: 1px solid rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.14);
     display: flex;
     align-items: center;
     padding: 0 4px;
@@ -2714,8 +2801,11 @@ h1, h2, h3, p { margin: 0; }
     top: 4px;
     bottom: 4px;
     border-radius: 999px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.25), rgba(255,255,255,0.08));
-    width: calc(var(--swipe-pct, 0) * (100% - 8px));
+    background: linear-gradient(90deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06));
+    width: calc(
+        var(--swipe-knob-size) +
+        (var(--swipe-pct, 0) * (100% - var(--swipe-knob-size) - (var(--swipe-track-pad) * 2)))
+    );
     transition: none;
     pointer-events: none;
 }
@@ -2733,8 +2823,8 @@ h1, h2, h3, p { margin: 0; }
 }
 
 .lock-swipe-knob {
-    width: 44px;
-    height: 44px;
+    width: var(--swipe-knob-size);
+    height: var(--swipe-knob-size);
     border-radius: 50%;
     background: white;
     display: flex;
@@ -2771,23 +2861,7 @@ h1, h2, h3, p { margin: 0; }
     to { opacity: 0; transform: translateY(-8%) scale(1.02); }
 }
 
-/* ============================================================
-   VIDEO STATE — blur fix for streaming
-   ============================================================ */
-.simulation-overlay.state-video .sensitive {
-    filter: blur(calc(var(--blur-level) * 0.65));
-    opacity: 0.78;
-    transition:
-        filter 2800ms cubic-bezier(0.16,1,0.3,1),
-        opacity 2600ms cubic-bezier(0.16,1,0.3,1);
-}
-
-.simulation-overlay.state-video .effect-layer.blur {
-    opacity: 0.6;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    transition: opacity 2s ease;
-}
+/* Video keeps titles readable; only the corners receive a light privacy dim. */
 
 /* ============================================================
    LEAFLET MAP — device marker + overrides
