@@ -71,16 +71,58 @@ const appState = {
     remotePasswordSet: false,
     blurLevel: 7,
     dimLevel: 0.62,
-    brightnessLevel: 1,
+    brightnessLevel: 0.8,
     paused: false,
     pauseStart: null,
     pausedTotal: 0,
     neutralImage: null,
-    wallpaper: "assets/wallpapers/wallpaper3.jpg"
+    wallpaper: "assets/wallpapers/wallpaper1.jpg"
 };
 
 const icon = (id, className = "icon") =>
     `<svg class="${className}" aria-hidden="true"><use href="#${id}"></use></svg>`;
+
+function isPhoneRuntime() {
+    const ua = navigator.userAgent || "";
+    const uaDataPhone = Boolean(navigator.userAgentData && navigator.userAgentData.mobile);
+    const userAgentPhone = /iPhone|iPod|Windows Phone|IEMobile|Opera Mini|Android.+Mobile/i.test(ua);
+    const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+    const narrowViewport = window.matchMedia("(max-width: 767px)").matches;
+
+    return uaDataPhone || userAgentPhone || (coarsePointer && narrowViewport);
+}
+
+function syncRuntimeDeviceMode() {
+    const phoneRuntime = isPhoneRuntime();
+    const root = document.documentElement;
+    const shell = $(".phone-shell");
+    const hint = $(".power-hint span");
+
+    root.classList.toggle("is-phone-runtime", phoneRuntime);
+    root.dataset.runtimeDevice = phoneRuntime ? "phone" : "desktop";
+
+    if (shell) {
+        if (phoneRuntime) {
+            shell.removeAttribute("src");
+        } else if (!shell.getAttribute("src")) {
+            shell.src = shell.dataset.shellSrc || "assets/phone-shell.png";
+        }
+    }
+
+    if (hint) {
+        hint.textContent = phoneRuntime ? "Toque para ligar" : "Pressione para ligar";
+    }
+}
+
+function setupRuntimeDeviceMode() {
+    syncRuntimeDeviceMode();
+    window.addEventListener("resize", syncRuntimeDeviceMode);
+    window.addEventListener("orientationchange", () => window.setTimeout(syncRuntimeDeviceMode, 120));
+}
+
+function isPhoneRuntimeMode() {
+    return document.documentElement.classList.contains("is-phone-runtime");
+}
 
 /* Apply selected wallpaper to the lock screen */
 function applyWallpaper(src) {
@@ -1242,7 +1284,7 @@ function renderVideo() {
                         <div class="video-play-btn">
                             <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7L8 5Z"/></svg>
                         </div>
-                        <span class="video-title sensitive">Como a IA protege sua privacidade em tempo real</span>
+                        <span class="video-title">Como a IA protege sua privacidade em tempo real</span>
                     </div>
                     <div class="video-bar"><div class="video-bar-fill" style="animation: video-progress 10s linear forwards"></div></div>
                 </div>
@@ -1250,21 +1292,21 @@ function renderVideo() {
                     <div class="video-row">
                         <div class="video-row-thumb"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7L8 5Z"/></svg></div>
                         <div class="video-row-info">
-                            <strong class="sensitive">Película Ghost Screen – Tutorial</strong>
+                            <strong>Película Ghost Screen – Tutorial</strong>
                             <span>248 mil visualizações</span>
                         </div>
                     </div>
                     <div class="video-row">
                         <div class="video-row-thumb"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7L8 5Z"/></svg></div>
                         <div class="video-row-info">
-                            <strong class="sensitive">Proteção no metrô – Demonstração</strong>
+                            <strong>Proteção no metrô – Demonstração</strong>
                             <span>91 mil visualizações</span>
                         </div>
                     </div>
                     <div class="video-row">
                         <div class="video-row-thumb"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7L8 5Z"/></svg></div>
                         <div class="video-row-info">
-                            <strong class="sensitive">Netflix – Série recomendada</strong>
+                            <strong>Netflix – Série recomendada</strong>
                             <span>Película reduz visibilidade lateral</span>
                         </div>
                     </div>
@@ -1466,8 +1508,11 @@ function syncDimLevel(value) {
 }
 
 function syncBrightnessLevel(value) {
-    appState.brightnessLevel = Number(value) / 100;
+    const normalized = Number(value) / 100;
+    const dimOpacity = Math.pow(1 - normalized, 1.25) * 0.62;
+    appState.brightnessLevel = normalized;
     document.documentElement.style.setProperty("--brightness-level", appState.brightnessLevel);
+    document.documentElement.style.setProperty("--screen-dim-opacity", dimOpacity.toFixed(3));
     if (elements.brightnessLabel) elements.brightnessLabel.textContent = `${value}%`;
 }
 
@@ -1571,6 +1616,7 @@ function setupLockScreen() {
     const phoneDevice = $("#phone-device");
     const lockScreen = $("#lock-screen");
     const powerBtn = $("#power-btn");
+    const phoneScreen = phoneDevice ? phoneDevice.querySelector(".phone-screen") : null;
 
     if (!phoneDevice || !lockScreen || !powerBtn) return;
 
@@ -1586,6 +1632,7 @@ function setupLockScreen() {
         lockScreen.classList.add("lock-screen-enter");
         window.setTimeout(() => lockScreen.classList.remove("lock-screen-enter"), 600);
         if (swipeKnob) swipeKnob.style.transform = "";
+        if (swipeTrack) swipeTrack.style.removeProperty("--swipe-pct");
         ensureAudioContext();
         playSound("scan");
     }
@@ -1605,6 +1652,7 @@ function setupLockScreen() {
             phoneDevice.dataset.phoneState = "unlocked";
             lockScreen.classList.remove("lock-screen-exit");
             if (swipeKnob) swipeKnob.style.transform = "";
+            if (swipeTrack) swipeTrack.style.removeProperty("--swipe-pct");
         }, 480);
         ensureAudioContext();
         playSound("shield");
@@ -1618,6 +1666,14 @@ function setupLockScreen() {
             powerOff();
         }
     });
+
+    if (phoneScreen) {
+        phoneScreen.addEventListener("click", (event) => {
+            if (!isPhoneRuntimeMode() || phoneDevice.dataset.phoneState !== "off") return;
+            event.preventDefault();
+            powerOn();
+        });
+    }
 
     if (swipeKnob && swipeTrack) {
         function startDrag(clientX) {
@@ -1853,11 +1909,13 @@ function bindEvents() {
    INIT
    ============================================================ */
 function init() {
+    setupRuntimeDeviceMode();
     startClock();
     renderModules();
     renderProtectedApps();
     renderEventFeed();
     bindEvents();
+    if (elements.brightnessLevel) syncBrightnessLevel(elements.brightnessLevel.value);
     applyWallpaper(appState.wallpaper);
 
     window.setTimeout(() => {
