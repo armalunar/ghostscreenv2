@@ -11,15 +11,14 @@ const AI_NOTIFICATION_DELAY_MS = 5200;
 const WALLPAPERS = [
     "assets/wallpapers/wallpaper1.jpg",
     "assets/wallpapers/wallpaper2.webp",
-    "assets/wallpapers/wallpaper3.jpg"
+    "assets/wallpapers/wallpaper3.png"
 ];
 
 /* Neutral screen images — add images to assets/telaneutra/ and list them here. */
 const DEFAULT_NEUTRAL_IMAGE = "assets/telaneutra/telaneutra.png";
 const NEUTRAL_IMAGES = [
     DEFAULT_NEUTRAL_IMAGE,
-    "assets/telaneutra/eyes.gif",
-    "assets/telaneutra/gorila.png"
+    "assets/telaneutra/eyes.gif"
 ];
 
 const elements = {
