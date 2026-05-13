@@ -15,7 +15,9 @@ const WALLPAPERS = [
 ];
 
 /* Neutral screen images — add images to assets/telaneutra/ and list them here. */
+const DEFAULT_NEUTRAL_IMAGE = "assets/telaneutra/telaneutra.png";
 const NEUTRAL_IMAGES = [
+    DEFAULT_NEUTRAL_IMAGE,
     "assets/telaneutra/eyes.gif",
     "assets/telaneutra/gorila.png"
 ];
@@ -75,7 +77,7 @@ const appState = {
     paused: false,
     pauseStart: null,
     pausedTotal: 0,
-    neutralImage: null,
+    neutralImage: DEFAULT_NEUTRAL_IMAGE,
     wallpaper: "assets/wallpapers/wallpaper1.jpg"
 };
 
@@ -1375,19 +1377,9 @@ function renderVaultFake() {
     }
 
     if (selected === "neutral") {
-        if (appState.neutralImage) {
-            return `
-                <section class="neutral-fake neutral-fake--image" style="background-image:url('${appState.neutralImage}')">
-                </section>
-            `;
-        }
+        const neutralImage = appState.neutralImage || DEFAULT_NEUTRAL_IMAGE;
         return `
-            <section class="neutral-fake">
-                <div>
-                    ${icon("icon-shield")}
-                    <h2>Tela protegida</h2>
-                    <p>Conteúdo indisponível no momento.</p>
-                </div>
+            <section class="neutral-fake neutral-fake--image" style="background-image:url('${neutralImage}')">
             </section>
         `;
     }
