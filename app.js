@@ -78,7 +78,7 @@ const appState = {
     pauseStart: null,
     pausedTotal: 0,
     neutralImage: DEFAULT_NEUTRAL_IMAGE,
-    wallpaper: "assets/wallpapers/wallpaper1.jpg"
+    wallpaper: "assets/wallpapers/wallpaper3.png"
 };
 
 const icon = (id, className = "icon") =>
